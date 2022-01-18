@@ -10,7 +10,9 @@ class Draw extends Component {
         height: 400,
         brushRadius: 5,
         lazyRadius: 0,
-        matches: []
+        result: "",
+        rowExpr: "",
+        colExpr: ""
     };
 
     render() {
@@ -18,16 +20,17 @@ class Draw extends Component {
             <div>
                 <h1>Pattern recognition with Go</h1>
 
-                <h3>Load an image from the filesystem</h3>
-                <h3>Draw a pattern</h3>
-                <h3>The recognizer will try to find all occurrences of the given pattern</h3>
+                <h2>Draw a pattern!</h2>
+                <h4>The 'Recognize' function will try to match the drawing against a set of predefined descriptors (a pattern descriptor is represented by a pair of regular expressions)</h4>
+                <h4 >A pair of regular expressions is used to describe the number of continuous intervals depicted from the given drawing (one for row intervals and one for column intervals)</h4>
+                <h4> You can also try to describe the pattern using your own expressions </h4>
 
                 <div className={classNames.tools}>
 
                     <button
                         onClick={() => {
                             this.saveableCanvas.eraseAll();
-                            this.setState({ matches: [] });
+                            this.setState({ result: "" });
                         }}
                     >
                         Erase
@@ -36,7 +39,7 @@ class Draw extends Component {
                     <button
                         onClick={() => {
                             this.saveableCanvas.undo();
-                            this.setState({ matches: [] });
+                            this.setState({ result: "" });
                         }}
                     >
                         Undo
@@ -46,6 +49,8 @@ class Draw extends Component {
                         onClick={() => {
 
                             const data = this.saveableCanvas.getSaveData();
+
+                            console.log(data);
 
                             fetch('http://localhost:8081/recognize', {
                                 method: "POST",
@@ -62,11 +67,41 @@ class Draw extends Component {
                                 const matches = [];
                                 result.Matches.forEach(m => matches.push(String.fromCharCode(m)));
                                 console.log(matches);
-                                this.setState({ matches: matches })
+                                this.setState({ result: matches.join(" ") })
                             });
                         }}
                     >
                         Recognize
+                    </button>
+
+                    <button
+                        onClick={() => {
+
+                            const rowExpr = this.state.rowExpr;
+                            const colExpr = this.state.colExpr;
+                            const data = this.saveableCanvas.getSaveData();
+
+                            const bodyData = { rowExpr, colExpr, data }
+
+                            console.log(bodyData);
+
+                            fetch('http://localhost:8081/matchExpr', {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "text/plain",
+                                    "Accept": "application/json",
+                                },
+                                mode: "cors",
+                                body: JSON.stringify(bodyData)
+                            }).then(resp => {
+                                return resp.json();
+                            }).then(result => {
+                                console.log(result);
+                                this.setState({ result: result.toString() })
+                            });
+                        }}
+                    >
+                        Match expressions
                     </button>
 
                     <div>
@@ -100,12 +135,44 @@ class Draw extends Component {
                             }
                         />
                     </div>
+
                     <div>
-                        <div>Matches {this.state.matches.join(" ")}</div>
+                        <label>Row expression </label>
+                        <input
+                            type="text"
+                            value={this.state.rowExpr}
+                            onChange={e =>
+                                this.setState({ rowExpr: e.target.value.toString() })
+                            }
+                        />
                     </div>
+
+                    <div>
+                        <label>Col expression </label>
+                        <input
+                            type="text"
+                            value={this.state.colExpr}
+                            onChange={e =>
+                                this.setState({ colExpr: e.target.value.toString() })
+                            }
+                        />
+                    </div>
+
+                    <div>
+                        <label>Result</label>
+                        <span style={{
+                            color: "lightgreen",
+                            background: "slategray"
+                        }}>{this.state.result}</span>
+                    </div>
+
                     <br/>
                 </div>
-                <CanvasDraw
+                <CanvasDraw style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
                     ref={canvasDraw => (this.saveableCanvas = canvasDraw)}
                     brushColor={this.state.color}
                     brushRadius={this.state.brushRadius}
