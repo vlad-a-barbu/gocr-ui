@@ -10,7 +10,7 @@ class Draw extends Component {
         height: 400,
         brushRadius: 5,
         lazyRadius: 0,
-        recognized: null
+        matches: []
     };
 
     render() {
@@ -27,6 +27,7 @@ class Draw extends Component {
                     <button
                         onClick={() => {
                             this.saveableCanvas.eraseAll();
+                            this.setState({ matches: [] });
                         }}
                     >
                         Erase
@@ -35,6 +36,7 @@ class Draw extends Component {
                     <button
                         onClick={() => {
                             this.saveableCanvas.undo();
+                            this.setState({ matches: [] });
                         }}
                     >
                         Undo
@@ -52,11 +54,15 @@ class Draw extends Component {
                                     "Accept": "application/json",
                                 },
                                 mode: "cors",
-                                body: JSON.stringify({"data":data})
+                                body: data
                             }).then(resp => {
                                 return resp.json();
                             }).then(result => {
-                                console.log(result);
+                                console.log("Matches: ");
+                                const matches = [];
+                                result.Matches.forEach(m => matches.push(String.fromCharCode(m)));
+                                console.log(matches);
+                                this.setState({ matches: matches })
                             });
                         }}
                     >
@@ -93,6 +99,9 @@ class Draw extends Component {
                                 this.setState({ brushRadius: parseInt(e.target.value, 10) })
                             }
                         />
+                    </div>
+                    <div>
+                        <div>Matches {this.state.matches.join(" ")}</div>
                     </div>
                     <br/>
                 </div>
