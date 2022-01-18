@@ -168,6 +168,7 @@ class Draw extends Component {
 
                     <br/>
                 </div>
+                <p style={{fontStyle:"italic"}}>Mouse scrolling and panning can be used with Ctrl</p>
                 <CanvasDraw style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -179,6 +180,7 @@ class Draw extends Component {
                     lazyRadius={this.state.lazyRadius}
                     canvasWidth={this.state.width}
                     canvasHeight={this.state.height}
+                    enablePanAndZoom={true}
                 />
             </div>
         );
